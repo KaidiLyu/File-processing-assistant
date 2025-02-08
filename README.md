@@ -74,17 +74,27 @@ npm run electron:build   # Build for production
 ## Project Structure
 
 ```
-├── electron/
-│   └── main.ts           # Electron main process file
-├── app/
-│   ├── components/       # React component files
-│   │   └── features/    # Feature-specific components
-│   └── layout/          # Layout and structure components
-├── components/
-│   └── ui/              # Reusable UI components
-├── dist/                # Compiled application code
-└── .next/              # Next.js build files
+├── app/                        # Next.js 应用目录 | Next.js app directory
+│   ├── components/            # 应用级组件 | Application-level components
+│   │   ├── feature-layout.tsx # 功能布局组件 | Feature layout component
+│   │   └── bottom-toolbar.tsx # 底部工具栏组件 | Bottom toolbar component
+│   └── layout.tsx            # 根布局组件 | Root layout component
+├── electron/                  # Electron 相关文件 | Electron-related files
+│   └── main.ts               # 主进程文件 | Main process file
+├── styles/                   # 样式文件 | Style files
+│   └── globals.css          # 全局样式 | Global styles
+├── lib/                     # 工具函数库 | Utility functions
+├── public/                  # 静态资源 | Static assets
+└── dist/                    # 构建输出 | Build output
+    └── renderer/           # 渲染进程输出 | Renderer process output
 ```
+
+### 关键文件说明 (Key Files Description)
+
+- `electron/main.ts`: Electron 主进程，处理应用生命周期和原生功能
+- `app/layout.tsx`: Next.js 根布局，定义应用的基本结构
+- `styles/globals.css`: 全局样式定义，包含主题变量和基础样式
+- `tailwind.config.ts`: Tailwind CSS 配置，定义主题和样式系统
 
 ## Environment Requirements
 

@@ -1,0 +1,61 @@
+{
+  // 编译器选项 | Compiler options
+  "compilerOptions": {
+    // 目标 ECMAScript 版本 | Target ECMAScript version
+    "target": "es5",
+    
+    // 允许的库文件 | Allowed library files
+    "lib": ["dom", "dom.iterable", "esnext"],
+    
+    // 允许 JavaScript 文件 | Allow JavaScript files
+    "allowJs": true,
+    
+    // 跳过类型检查库文件 | Skip type checking of library files
+    "skipLibCheck": true,
+    
+    // 严格模式 | Strict mode
+    "strict": true,
+    
+    // 不允许隐式的 any 类型 | Don't allow implicit any types
+    "noImplicitAny": true,
+    
+    // 强制使用 ES 模块语法 | Force use of ES Module syntax
+    "esModuleInterop": true,
+    
+    // 模块解析策略 | Module resolution strategy
+    "moduleResolution": "node",
+    
+    // 解析 JSON 模块 | Resolve JSON modules
+    "resolveJsonModule": true,
+    
+    // 独立编译 | Isolated compilation
+    "isolatedModules": true,
+    
+    // 不输出文件 | Don't emit files
+    "noEmit": true,
+    
+    // JSX 处理方式 | JSX handling
+    "jsx": "preserve",
+    
+    // 增量编译 | Incremental compilation
+    "incremental": true,
+    
+    // 插件 | Plugins
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    
+    // 路径别名 | Path aliases
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  
+  // 包含的文件 | Included files
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  
+  // 排除的文件 | Excluded files
+  "exclude": ["node_modules"]
+}
