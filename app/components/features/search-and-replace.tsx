@@ -1,102 +1,118 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { FeatureLayout } from "../feature-layout"
 import { DropZone } from "../ui/drop-zone"
 import { FileList } from "../ui/file-list"
-import { Switch } from "@/components/ui/switch"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input" // 【新增代码】
+import { Label } from "@/components/ui/label" // 【新增代码】
+
+// ----------------------【新增辅助函数：搜索替换】----------------------
+function searchAndReplace(text: string, searchTerm: string, replaceTerm: string): string {
+  if (!searchTerm) return text
+  // 对搜索字符串中的特殊字符进行转义，避免正则报错
+  const escapedSearchTerm = searchTerm.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
+  const regex = new RegExp(escapedSearchTerm, "g")
+  return text.replace(regex, replaceTerm)
+}
+// ----------------------【新增辅助函数结束】----------------------
 
 export function SearchAndReplace() {
   const [files, setFiles] = useState<File[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [replaceTerm, setReplaceTerm] = useState("")
-  const [caseSensitive, setCaseSensitive] = useState(false)
-  const [processAllFiles, setProcessAllFiles] = useState(false)
-  const [useRegex, setUseRegex] = useState(false)
-
   const handleFiles = (fileList: FileList) => {
     setFiles(Array.from(fileList))
   }
-
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index))
   }
 
-  const handleSearchReplace = () => {
-    console.log(`搜索 "${searchTerm}" 并替换为 "${replaceTerm}"`)
-    console.log(`处理所有文件: ${processAllFiles}`)
-    console.log(`区分大小写: ${caseSensitive}`)
-    console.log(`使用正则表达式: ${useRegex}`)
+  // ----------------------【新增状态：搜索与替换内容】----------------------
+  const [searchTerm, setSearchTerm] = useState("")
+  const [replaceTerm, setReplaceTerm] = useState("")
+  // ----------------------【新增状态：存储搜索替换后的预览结果】----------------------
+  const [replaceResults, setReplaceResults] = useState<Array<{ fileName: string; content: string }>>([])
+  // ----------------------【新增状态结束】----------------------
+
+  // ----------------------【新增逻辑：执行搜索替换】----------------------
+  const handleSearchAndReplace = () => {
+    console.log(`搜索内容：${searchTerm}，替换为：${replaceTerm}`)
+    const promises = files.map((file: File) => {
+      return new Promise<{ fileName: string; content: string }>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          if (reader.result) {
+            const originalText = reader.result as string
+            const newText = searchAndReplace(originalText, searchTerm, replaceTerm)
+            resolve({ fileName: file.name, content: newText })
+          } else {
+            reject(new Error("文件读取失败"))
+          }
+        }
+        reader.onerror = () => reject(new Error("读取文件出错"))
+        reader.readAsText(file)
+      })
+    })
+    Promise.all(promises)
+      .then(results => {
+        setReplaceResults(results)
+        console.log("搜索替换完成", results)
+      })
+      .catch(err => {
+        console.error("搜索替换过程中出错", err)
+      })
   }
+  // ----------------------【新增逻辑结束】----------------------
 
   return (
-    <FeatureLayout title="搜索替换">
-      <div className="space-y-6">
-        <DropZone
-          onFileSelect={handleFiles}
-          multiple
-          accept=".txt,.csv,.md"
-          activeMessage="释放以添加文件"
-          inactiveMessage="拖放文本文件到这里，或点击选择文件"
-        />
-
-        {files.length > 0 && (
-          <>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="search-term">搜索内容</Label>
-                <Input
-                  id="search-term"
-                  placeholder="输入要搜索的内容"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="replace-term">替换内容</Label>
-                <Input
-                  id="replace-term"
-                  placeholder="输入要替换的内容"
-                  value={replaceTerm}
-                  onChange={(e) => setReplaceTerm(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch id="process-all-files" checked={processAllFiles} onCheckedChange={setProcessAllFiles} />
-                <Label htmlFor="process-all-files">处理所有文件</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="case-sensitive" checked={caseSensitive} onCheckedChange={(checked) => setCaseSensitive(!!checked)} />
-                <Label htmlFor="case-sensitive">区分大小写</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="use-regex" checked={useRegex} onCheckedChange={(checked) => setUseRegex(!!checked)} />
-                <Label htmlFor="use-regex">使用正则表达式</Label>
-              </div>
+    <FeatureLayout>
+      <DropZone onFiles={handleFiles} />
+      {files.length > 0 && (
+        <>
+          <FileList files={files} onRemove={removeFile} />
+          {/* ----------------------【新增输入项：搜索与替换内容】---------------------- */}
+          <div style={{ margin: "1rem 0" }}>
+            <Label>搜索内容</Label>
+            <Input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="请输入要搜索的内容"
+            />
+          </div>
+          <div style={{ margin: "1rem 0" }}>
+            <Label>替换为</Label>
+            <Input
+              type="text"
+              value={replaceTerm}
+              onChange={(e) => setReplaceTerm(e.target.value)}
+              placeholder="请输入替换内容"
+            />
+          </div>
+          {/* ----------------------【新增输入项结束】---------------------- */}
+          <Button onClick={handleSearchAndReplace}>执行搜索替换</Button>
+          {/* ----------------------【新增预览展示：显示搜索替换结果】---------------------- */}
+          {replaceResults.length > 0 && (
+            <div style={{ marginTop: "1rem" }}>
+              <h3>搜索替换预览</h3>
+              {replaceResults.map(result => (
+                <div key={result.fileName} style={{ marginBottom: "1rem" }}>
+                  <h4>{result.fileName}</h4>
+                  <pre
+                    style={{
+                      background: "#f5f5f5",
+                      padding: "1rem",
+                      borderRadius: "4px",
+                      overflowX: "auto"
+                    }}
+                  >
+                    {result.content}
+                  </pre>
+                </div>
+              ))}
             </div>
-
-            <div className="rounded-md border">
-              <FileList
-                files={files}
-                onRemove={removeFile}
-                columns={{
-                  name: true,
-                  size: true,
-                  type: true,
-                  lastModified: false,
-                }}
-              />
-            </div>
-
-            <Button onClick={handleSearchReplace} className="px-8">
-              开始替换
-            </Button>
-          </>
-        )}
-      </div>
+          )}
+          {/* ----------------------【新增预览展示结束】---------------------- */}
+        </>
+      )}
     </FeatureLayout>
   )
 }
-

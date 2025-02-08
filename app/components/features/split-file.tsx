@@ -1,90 +1,123 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { FeatureLayout } from "../feature-layout"
 import { DropZone } from "../ui/drop-zone"
 import { FileList } from "../ui/file-list"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input" // 【新增代码】
+
+// ----------------------【新增辅助函数：分割文件内容】----------------------
+function splitFileContent(text: string, linesPerSplit: number): string[] {
+  // 将文本按换行符拆分成数组
+  const lines = text.split("\n")
+  const parts: string[] = []
+  // 按每块行数循环分割
+  for (let i = 0; i < lines.length; i += linesPerSplit) {
+    parts.push(lines.slice(i, i + linesPerSplit).join("\n"))
+  }
+  return parts
+}
+// ----------------------【新增辅助函数结束】----------------------
 
 export function SplitFile() {
   const [files, setFiles] = useState<File[]>([])
-  const [splitMethod, setSplitMethod] = useState<"lines" | "size">("lines")
-  const [splitValue, setSplitValue] = useState("")
-
   const handleFiles = (fileList: FileList) => {
     setFiles(Array.from(fileList))
   }
-
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index))
   }
 
+  // ----------------------【新增状态：存储每个文件分割后的结果】----------------------
+  const [splitResults, setSplitResults] = useState<Array<{ fileName: string; parts: string[] }>>([])
+  // ----------------------【新增状态结束】----------------------
+
+  // ----------------------【新增状态：记录用户输入的每个分割块包含的行数】----------------------
+  const [linesPerSplit, setLinesPerSplit] = useState<string>("10")
+  // ----------------------【新增状态结束】----------------------
+
   const handleSplit = () => {
-    console.log(`拆分文件：按${splitMethod === "lines" ? "行数" : "大小"}，值为${splitValue}`)
+    console.log("开始分割文件")
+    const promises = files.map((file: File) => {
+      return new Promise<{ fileName: string; parts: string[] }>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          if (reader.result) {
+            const text = reader.result as string
+            const linesNum = Number(linesPerSplit)
+            if (isNaN(linesNum) || linesNum <= 0) {
+              reject(new Error("无效的每块行数"))
+              return
+            }
+            // ----------------------【新增调用辅助函数进行文件分割】----------------------
+            const parts = splitFileContent(text, linesNum)
+            resolve({ fileName: file.name, parts })
+            // ----------------------【新增调用辅助函数结束】----------------------
+          } else {
+            reject(new Error("文件读取失败"))
+          }
+        }
+        reader.onerror = () => reject(new Error("读取文件出错"))
+        reader.readAsText(file)
+      })
+    })
+    Promise.all(promises)
+      .then(results => {
+        setSplitResults(results)
+        console.log("分割完成", results)
+      })
+      .catch(err => {
+        console.error("分割过程中出错", err)
+      })
   }
 
   return (
-    <FeatureLayout title="拆分文件">
-      <div className="space-y-6">
-        <DropZone
-          onFileSelect={handleFiles}
-          multiple={false}
-          accept=".txt,.csv"
-          activeMessage="释放以添加文件"
-          inactiveMessage="拖放文本文件到这里，或点击选择文件"
-        />
-
-        {files.length > 0 && (
-          <>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="split-method">拆分方式</Label>
-                <Select value={splitMethod} onValueChange={(value: "lines" | "size") => setSplitMethod(value)}>
-                  <SelectTrigger id="split-method">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="lines">按行数拆分</SelectItem>
-                    <SelectItem value="size">按大小拆分</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="split-value">
-                  {splitMethod === "lines" ? "每个文件的行数" : "每个文件的大小 (KB)"}
-                </Label>
-                <Input
-                  id="split-value"
-                  type="number"
-                  min="1"
-                  value={splitValue}
-                  onChange={(e) => setSplitValue(e.target.value)}
-                  placeholder={splitMethod === "lines" ? "例如：1000" : "例如：1024"}
-                />
-              </div>
+    <FeatureLayout>
+      <DropZone onFiles={handleFiles} />
+      {files.length > 0 && (
+        <>
+          <FileList files={files} onRemove={removeFile} />
+          {/* ----------------------【新增输入项：设置每个分割块包含的行数】---------------------- */}
+          <div style={{ margin: "1rem 0" }}>
+            <Label>每个分割块包含的行数</Label>
+            <Input
+              type="number"
+              value={linesPerSplit}
+              onChange={(e) => setLinesPerSplit(e.target.value)}
+              placeholder="请输入每个块的行数"
+            />
+          </div>
+          {/* ----------------------【新增输入项结束】---------------------- */}
+          <Button onClick={handleSplit}>分割文件</Button>
+          {/* ----------------------【新增预览展示：显示分割后的结果】---------------------- */}
+          {splitResults.length > 0 && (
+            <div style={{ marginTop: "1rem" }}>
+              <h3>分割结果预览</h3>
+              {splitResults.map(result => (
+                <div key={result.fileName} style={{ marginBottom: "1rem" }}>
+                  <h4>{result.fileName}</h4>
+                  {result.parts.map((part, index) => (
+                    <div key={index} style={{ marginBottom: "0.5rem" }}>
+                      <strong>部分 {index + 1}:</strong>
+                      <pre
+                        style={{
+                          background: "#f5f5f5",
+                          padding: "0.5rem",
+                          borderRadius: "4px",
+                          overflowX: "auto"
+                        }}
+                      >
+                        {part}
+                      </pre>
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
-
-            <div className="rounded-md border">
-              <FileList
-                files={files}
-                onRemove={removeFile}
-                columns={{
-                  name: true,
-                  size: true,
-                  type: true,
-                  lastModified: false,
-                }}
-              />
-            </div>
-
-            <Button onClick={handleSplit} className="px-8">
-              拆分文件
-            </Button>
-          </>
-        )}
-      </div>
+          )}
+          {/* ----------------------【新增预览展示结束】---------------------- */}
+        </>
+      )}
     </FeatureLayout>
   )
 }
-

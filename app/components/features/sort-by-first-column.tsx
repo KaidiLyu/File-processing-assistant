@@ -3,72 +3,99 @@ import { Button } from "@/components/ui/button"
 import { FeatureLayout } from "../feature-layout"
 import { DropZone } from "../ui/drop-zone"
 import { FileList } from "../ui/file-list"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+
+// ----------------------【新增辅助函数：按第一列排序】----------------------
+function sortByFirstColumn(text: string): string {
+  // 将文本按换行符拆分为数组
+  const lines = text.split("\n")
+  // 过滤掉只包含空白字符的行
+  const nonEmptyLines = lines.filter(line => line.trim() !== "")
+  // 假设每行数据的各列以空白字符分隔，取第一列进行排序
+  nonEmptyLines.sort((a, b) => {
+    const aFirst = a.trim().split(/\s+/)[0] || ""
+    const bFirst = b.trim().split(/\s+/)[0] || ""
+    return aFirst.localeCompare(bFirst)
+  })
+  return nonEmptyLines.join("\n")
+}
+// ----------------------【新增辅助函数结束】----------------------
 
 export function SortByFirstColumn() {
   const [files, setFiles] = useState<File[]>([])
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
-
   const handleFiles = (fileList: FileList) => {
     setFiles(Array.from(fileList))
   }
-
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index))
   }
 
+  // ----------------------【新增状态：存储排序后的预览结果】----------------------
+  const [sortedResults, setSortedResults] = useState<Array<{ fileName: string; content: string }>>([])
+  // ----------------------【新增状态结束】----------------------
+
+  // ----------------------【新增逻辑：执行按第一列排序】----------------------
   const handleSort = () => {
-    // 这里应该实现实际的排序逻辑
-    console.log(`排序文件，顺序：${sortOrder}`)
+    console.log("开始按第一列排序")
+    const promises = files.map((file: File) => {
+      return new Promise<{ fileName: string; content: string }>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          if (reader.result) {
+            const originalText = reader.result as string
+            // 调用辅助函数进行排序
+            const sortedText = sortByFirstColumn(originalText)
+            resolve({ fileName: file.name, content: sortedText })
+          } else {
+            reject(new Error("文件读取失败"))
+          }
+        }
+        reader.onerror = () => reject(new Error("读取文件出错"))
+        reader.readAsText(file)
+      })
+    })
+    Promise.all(promises)
+      .then(results => {
+        setSortedResults(results)
+        console.log("排序完成", results)
+      })
+      .catch(err => {
+        console.error("排序过程中出错", err)
+      })
   }
+  // ----------------------【新增逻辑结束】----------------------
 
   return (
-    <FeatureLayout title="按首列排序">
-      <div className="space-y-6">
-        <DropZone
-          onFileSelect={handleFiles}
-          multiple
-          accept=".csv,.txt"
-          activeMessage="释放以添加文件"
-          inactiveMessage="拖放CSV或TXT文件到这里，或点击选择文件"
-        />
-
-        {files.length > 0 && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="sort-order">排序顺序</Label>
-              <Select value={sortOrder} onValueChange={(value: "asc" | "desc") => setSortOrder(value)}>
-                <SelectTrigger id="sort-order">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="asc">升序</SelectItem>
-                  <SelectItem value="desc">降序</SelectItem>
-                </SelectContent>
-              </Select>
+    <FeatureLayout>
+      <DropZone onFiles={handleFiles} />
+      {files.length > 0 && (
+        <>
+          <FileList files={files} onRemove={removeFile} />
+          <Button onClick={handleSort}>按第一列排序</Button>
+          {/* ----------------------【新增预览展示：显示排序后的结果】---------------------- */}
+          {sortedResults.length > 0 && (
+            <div style={{ marginTop: "1rem" }}>
+              <h3>排序预览</h3>
+              {sortedResults.map(result => (
+                <div key={result.fileName} style={{ marginBottom: "1rem" }}>
+                  <h4>{result.fileName}</h4>
+                  <pre
+                    style={{
+                      background: "#f5f5f5",
+                      padding: "1rem",
+                      borderRadius: "4px",
+                      overflowX: "auto"
+                    }}
+                  >
+                    {result.content}
+                  </pre>
+                </div>
+              ))}
             </div>
-
-            <div className="rounded-md border">
-              <FileList
-                files={files}
-                onRemove={removeFile}
-                columns={{
-                  name: true,
-                  size: true,
-                  type: true,
-                  lastModified: false,
-                }}
-              />
-            </div>
-
-            <Button onClick={handleSort} className="px-8">
-              开始排序
-            </Button>
-          </>
-        )}
-      </div>
+          )}
+          {/* ----------------------【新增预览展示结束】---------------------- */}
+        </>
+      )}
     </FeatureLayout>
   )
 }
-
