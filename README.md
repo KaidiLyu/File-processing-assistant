@@ -42,20 +42,6 @@ A desktop application built with Next.js and Electron, featuring a Mac OS-style 
   - **Tailwind CSS**: Utility-first styling
   - **TypeScript**: Static typing for better reliability
 
-## Current Issues
-
-The main build process is facing several configuration challenges:
-
-1. **Main Process File**
-   - TypeScript compilation not working for `electron/main.ts`
-   - Configuration needs adjustment for proper TypeScript support
-   - Path resolution issues in production environment
-
-2. **Build Process Errors**
-   - Missing `main.js` in dist directory
-   - Next.js static export not properly configured
-   - Electron bundling incomplete
-
 ## Development Setup
 
 ```bash
@@ -132,10 +118,6 @@ npm run electron:build   # Build for production
 ## Contributing
 
 We welcome contributions! Please read our contributing guidelines for details on our code of conduct and the process for submitting pull requests.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 # File-processing-tools
 # File-APP
