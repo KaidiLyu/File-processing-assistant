@@ -10,9 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { getFileExtension, removeFileExtension } from "@/lib/utils"
+import { ExportFile } from "../ui/export-file"
 
 export function BatchRename() {
-  const [files, setFiles] = useState([])
+  const [files, setFiles] = useState<File[]>([])
   const [prefix, setPrefix] = useState("")
   const [suffix, setSuffix] = useState("")
   const [startNumber, setStartNumber] = useState("1")
@@ -21,7 +22,7 @@ export function BatchRename() {
   const [renameMode, setRenameMode] = useState("prefix-suffix")
   const [progress, setProgress] = useState(0)
   // ----------------------【新增状态开始】----------------------
-  const [renameResults, setRenameResults] = useState([])
+  const [renameResults, setRenameResults] = useState<{ original: string; newName: string, content: string }[]>([])
   // ----------------------【新增状态结束】----------------------
 
   const handleFiles = (fileList: FileList) => {
@@ -46,28 +47,34 @@ export function BatchRename() {
     }
   }
 
-  const handleRename = () => {
+  const handleRename = async () => {
     let currentProgress = 0
     const interval = setInterval(() => {
       currentProgress += 10
       setProgress(currentProgress)
       if (currentProgress >= 100) {
         clearInterval(interval)
-        // ----------------------【新增批量重命名预览逻辑开始】----------------------
-        // 使用 getNewFileName 方法生成每个文件的新文件名，并存入 renameResults 中
-        const results = files.map((file: File, index: number) => ({
-          original: file.name,
-          newName: getNewFileName(file, index)
-        }))
-        setRenameResults(results)
-        // ----------------------【新增批量重命名预览逻辑结束】----------------------
+        // 读取文件内容并生成结果
+        Promise.all(
+          files.map(async (file: File, index: number) => {
+            const content = await file.text() // 读取文件内容
+            return {
+              original: file.name,
+              newName: getNewFileName(file, index),
+              content: content
+            }
+          })
+        ).then((results) => {
+          setRenameResults(results)
+        })
       }
     }, 200)
   }
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <FeatureLayout>
-      <DropZone onFiles={handleFiles} />
+      <DropZone onFileSelect={handleFiles} />
       {files.length > 0 && (
         <>
           <Tabs defaultValue="prefix-suffix" className="mt-4">
@@ -137,6 +144,15 @@ export function BatchRename() {
           <Button onClick={handleRename} className="mt-4">
             应用更改
           </Button>
+          {renameResults.length > 0 && (
+            <>
+              <Button className="ml-3" onClick={() => setIsOpen(!isOpen)}>导出文件</Button>
+              <ExportFile files={renameResults.map(result => ({
+                fileName: result.newName,
+                content: result.content
+              }))} isOpen={isOpen} onClose={() => setIsOpen(!isOpen)} />
+            </>
+          )}
           {progress > 0 && (
             <Progress value={progress} className="mt-4" />
           )}

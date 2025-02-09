@@ -5,6 +5,7 @@ import { DropZone } from "../ui/drop-zone"
 import { FileList } from "../ui/file-list"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ExportFile } from "../ui/export-file"
 
 /* ----------------------【新增辅助函数：用于删除文本中指定列】---------------------- */
 function deleteColumnFromText(text: string, colIndex: number): string {
@@ -29,11 +30,11 @@ function deleteColumnFromText(text: string, colIndex: number): string {
 export function DeleteColumn() {
   const [files, setFiles] = useState<File[]>([])
   const [columnIndex, setColumnIndex] = useState<string>("") // 原有状态，用于输入待删除的列索引
-  
+
   // ----------------------【新增状态：用于存储删除列后文件的预览结果】----------------------
   const [deleteResults, setDeleteResults] = useState<Array<{ fileName: string; content: string }>>([])
   // ----------------------【新增状态结束】----------------------
-  
+
   const handleFiles = (fileList: FileList) => {
     setFiles(Array.from(fileList))
   }
@@ -74,9 +75,11 @@ export function DeleteColumn() {
     // ----------------------【新增删除列逻辑结束】----------------------
   }
 
+  const [isOpen, setIsOpen] = useState(false)
+
   return (
     <FeatureLayout>
-      <DropZone onFiles={handleFiles} />
+      <DropZone onFileSelect={handleFiles} />
       {files.length > 0 && (
         <>
           <FileList files={files} onRemove={removeFile} />
@@ -90,6 +93,12 @@ export function DeleteColumn() {
             />
           </div>
           <Button onClick={handleDelete}>删除列</Button>
+          {deleteResults.length > 0 && (
+            <>
+              <Button className="ml-3" onClick={() => setIsOpen(!isOpen)}>导出文件</Button>
+              <ExportFile files={deleteResults} isOpen={isOpen} onClose={() => setIsOpen(!isOpen)} />
+            </>
+          )}
           {/* ----------------------【新增预览展示：显示每个文件处理后的文本】---------------------- */}
           {deleteResults.length > 0 && (
             <div style={{ marginTop: "1rem" }}>

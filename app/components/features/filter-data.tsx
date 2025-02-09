@@ -5,6 +5,7 @@ import { DropZone } from "../ui/drop-zone"
 import { FileList } from "../ui/file-list"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ExportFile } from "../ui/export-file"
 
 // ----------------------【新增辅助函数：用于过滤文本中包含关键词的行】----------------------
 function filterTextData(text: string, keyword: string): string {
@@ -20,7 +21,7 @@ function filterTextData(text: string, keyword: string): string {
 
 export function FilterData() {
   // 原有代码状态保持不变
-  const [files, setFiles] = useState([])
+  const [files, setFiles] = useState<File[]>([])
   const handleFiles = (fileList: FileList) => {
     setFiles(Array.from(fileList))
   }
@@ -31,7 +32,7 @@ export function FilterData() {
   // ----------------------【新增状态：用于记录过滤关键词】----------------------
   const [filterKeyword, setFilterKeyword] = useState("")
   // ----------------------【新增状态：用于存储过滤后的预览结果】----------------------
-  const [filterResults, setFilterResults] = useState([])
+  const [filterResults, setFilterResults] = useState<{ fileName: string; content: string }[]>([])
   // ----------------------【新增状态结束】----------------------
 
   // ----------------------【新增过滤数据逻辑开始】----------------------
@@ -63,10 +64,11 @@ export function FilterData() {
       })
   }
   // ----------------------【新增过滤数据逻辑结束】----------------------
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <FeatureLayout>
-      <DropZone onFiles={handleFiles} />
+      <DropZone onFileSelect={handleFiles} />
       {files.length > 0 && (
         <>
           <FileList files={files} onRemove={removeFile} />
@@ -82,6 +84,12 @@ export function FilterData() {
           </div>
           {/* ----------------------【新增过滤数据输入项结束】---------------------- */}
           <Button onClick={handleFilter}>过滤数据</Button>
+          {filterResults.length > 0 && (
+            <>
+              <Button className="ml-3" onClick={() => setIsOpen(!isOpen)}>导出文件</Button>
+              <ExportFile files={filterResults} isOpen={isOpen} onClose={() => setIsOpen(!isOpen)} />
+            </>
+          )}
           {/* ----------------------【新增过滤数据预览展示开始】---------------------- */}
           {filterResults.length > 0 && (
             <div style={{ marginTop: "1rem" }}>

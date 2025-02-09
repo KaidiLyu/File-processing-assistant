@@ -5,6 +5,7 @@ import { DropZone } from "../ui/drop-zone"
 import { FileList } from "../ui/file-list"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ExportFile } from "../ui/export-file"
 
 // ----------------------【新增辅助函数：删除文本中指定行集合】----------------------
 function deleteSpecificRowsFromText(text: string, rowIndices: number[]): string {
@@ -16,21 +17,21 @@ function deleteSpecificRowsFromText(text: string, rowIndices: number[]): string 
 // ----------------------【新增辅助函数结束】----------------------
 
 export function DeleteSpecificRow() {
-  const [files, setFiles] = useState([])
+  const [files, setFiles] = useState<File[]>([])
   // 原有状态保持不变，增加用于输入要删除的行索引（多个索引以逗号分隔）
   const [specificRows, setSpecificRows] = useState("")
   // ----------------------【新增状态：存储删除指定行后的文件预览结果】----------------------
-  const [deleteSpecificResults, setDeleteSpecificResults] = useState([])
+  const [deleteSpecificResults, setDeleteSpecificResults] = useState<{ fileName: string; content: string }[]>([])
   // ----------------------【新增状态结束】----------------------
-  
+
   const handleFiles = (fileList: FileList) => {
     setFiles(Array.from(fileList))
   }
-  
+
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index))
   }
-  
+
   // ----------------------【新增删除指定行逻辑开始】----------------------
   const handleDeleteSpecificRow = () => {
     console.log(`删除指定行: ${specificRows}`)
@@ -39,7 +40,7 @@ export function DeleteSpecificRow() {
       .split(",")
       .map(str => Number(str.trim()))
       .filter(num => !isNaN(num))
-  
+
     const promises = files.map((file: File) => {
       return new Promise<{ fileName: string; content: string }>((resolve, reject) => {
         const reader = new FileReader()
@@ -56,7 +57,7 @@ export function DeleteSpecificRow() {
         reader.readAsText(file)
       })
     })
-  
+
     Promise.all(promises)
       .then(results => {
         setDeleteSpecificResults(results)
@@ -67,10 +68,11 @@ export function DeleteSpecificRow() {
       })
   }
   // ----------------------【新增删除指定行逻辑结束】----------------------
-  
+  const [isOpen, setIsOpen] = useState(false)
+
   return (
     <FeatureLayout>
-      <DropZone onFiles={handleFiles} />
+      <DropZone onFileSelect={handleFiles} />
       {files.length > 0 && (
         <>
           <FileList files={files} onRemove={removeFile} />
@@ -84,6 +86,12 @@ export function DeleteSpecificRow() {
             />
           </div>
           <Button onClick={handleDeleteSpecificRow}>删除指定行</Button>
+          {deleteSpecificResults.length > 0 && (
+            <>
+              <Button className="ml-3" onClick={() => setIsOpen(!isOpen)}>导出文件</Button>
+              <ExportFile files={deleteSpecificResults} isOpen={isOpen} onClose={() => setIsOpen(!isOpen)} />
+            </>
+          )}
           {/* ----------------------【新增预览展示：显示每个文件处理后的文本】---------------------- */}
           {deleteSpecificResults.length > 0 && (
             <div style={{ marginTop: "1rem" }}>

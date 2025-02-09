@@ -5,6 +5,7 @@ import { DropZone } from "../ui/drop-zone"
 import { FileList } from "../ui/file-list"
 import { Input } from "@/components/ui/input" // 【新增代码】
 import { Label } from "@/components/ui/label" // 【新增代码】
+import { ExportFile } from "../ui/export-file"
 
 // ----------------------【新增辅助函数：搜索替换】----------------------
 function searchAndReplace(text: string, searchTerm: string, replaceTerm: string): string {
@@ -61,10 +62,11 @@ export function SearchAndReplace() {
       })
   }
   // ----------------------【新增逻辑结束】----------------------
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <FeatureLayout>
-      <DropZone onFiles={handleFiles} />
+      <DropZone onFileSelect={handleFiles} />
       {files.length > 0 && (
         <>
           <FileList files={files} onRemove={removeFile} />
@@ -89,6 +91,12 @@ export function SearchAndReplace() {
           </div>
           {/* ----------------------【新增输入项结束】---------------------- */}
           <Button onClick={handleSearchAndReplace}>执行搜索替换</Button>
+          {replaceResults.length > 0 && (
+            <>
+              <Button className="ml-3" onClick={() => setIsOpen(!isOpen)}>导出文件</Button>
+              <ExportFile files={replaceResults} isOpen={isOpen} onClose={() => setIsOpen(!isOpen)} />
+            </>
+          )}
           {/* ----------------------【新增预览展示：显示搜索替换结果】---------------------- */}
           {replaceResults.length > 0 && (
             <div style={{ marginTop: "1rem" }}>

@@ -6,10 +6,11 @@ import { FileList } from "../ui/file-list"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input" // 【新增代码】
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select" // 【新增代码】
+import { ExportFile } from "../ui/export-file"
 
 // ----------------------【新增辅助函数：文本格式转换】----------------------
 function convertTextFormat(text: string, option: string): string {
-  switch(option) {
+  switch (option) {
     case "uppercase":
       return text.toUpperCase()
     case "lowercase":
@@ -17,12 +18,12 @@ function convertTextFormat(text: string, option: string): string {
     case "titlecase":
       // 将每个单词首字母大写，其余小写
       return text.split(/\s+/).map(word => {
-        if(word.length === 0) return ""
+        if (word.length === 0) return ""
         return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
       }).join(" ")
     case "sentencecase":
       // 句子格式：仅首字母大写，其余小写
-      if(text.length === 0) return text
+      if (text.length === 0) return text
       return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
     default:
       return text
@@ -77,10 +78,11 @@ export function TextFormatConversion() {
       })
   }
   // ----------------------【新增逻辑结束】----------------------
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <FeatureLayout>
-      <DropZone onFiles={handleFiles} />
+      <DropZone onFileSelect={handleFiles} />
       {files.length > 0 && (
         <>
           <FileList files={files} onRemove={removeFile} />
@@ -101,6 +103,12 @@ export function TextFormatConversion() {
           </div>
           {/* ----------------------【新增输入项结束】---------------------- */}
           <Button onClick={handleConvertFormat}>转换文本格式</Button>
+          {conversionResults.length > 0 && (
+            <>
+              <Button className="ml-3" onClick={() => setIsOpen(!isOpen)}>导出文件</Button>
+              <ExportFile files={conversionResults} isOpen={isOpen} onClose={() => setIsOpen(!isOpen)} />
+            </>
+          )}
           {/* ----------------------【新增预览展示：显示转换后的文本】---------------------- */}
           {conversionResults.length > 0 && (
             <div style={{ marginTop: "1rem" }}>

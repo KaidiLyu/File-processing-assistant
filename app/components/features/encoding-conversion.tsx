@@ -7,14 +7,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 // ----------------------【新增实际转换操作：引入编码转换库】----------------------
-import Encoding from "encoding-japanese"
+import Encoding, { Encoding as EncodingType } from "encoding-japanese"
+import { ExportFile } from "../ui/export-file"
 // ----------------------【新增实际转换操作】----------------------
 
 export function EncodingConversion() {
-  const [files, setFiles] = useState([])
+  const [files, setFiles] = useState<File[]>([])
   const [sourceEncoding, setSourceEncoding] = useState("utf-8")
   const [targetEncoding, setTargetEncoding] = useState("utf-8")
-  const [conversionResults, setConversionResults] = useState([])
+  const [conversionResults, setConversionResults] = useState<{ fileName: string; content: string }[]>([])
 
   const handleFiles = (fileList: FileList) => {
     setFiles(Array.from(fileList))
@@ -47,7 +48,12 @@ export function EncodingConversion() {
             // 将字符串转换为字符代码数组
             const codeArray = Encoding.stringToCode(text)
             // 实际进行编码转换
-            const convertedArray = Encoding.convert(codeArray, targetEncNormalized, sourceEncNormalized)
+            const convertedArray = Encoding.convert(
+              codeArray, {
+              to: targetEncNormalized as EncodingType,
+              from: sourceEncNormalized as EncodingType
+            }
+            ) as number[]
             // 将转换后的字符代码数组转换为字符串
             convertedText = Encoding.codeToString(convertedArray)
             // ----------------------【新增实际转换操作结束】----------------------
@@ -76,10 +82,11 @@ export function EncodingConversion() {
         console.error("编码转换出错", err)
       })
   }
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <FeatureLayout>
-      <DropZone onFiles={handleFiles} />
+      <DropZone onFileSelect={handleFiles} />
       {files.length > 0 && (
         <>
           <FileList files={files} onRemove={removeFile} />
@@ -112,6 +119,12 @@ export function EncodingConversion() {
             </Select>
           </div>
           <Button onClick={handleConvert}>转换编码</Button>
+          {conversionResults.length > 0 && (
+            <>
+              <Button className="ml-3" onClick={() => setIsOpen(!isOpen)}>导出文件</Button>
+              <ExportFile files={conversionResults} isOpen={isOpen} onClose={() => setIsOpen(!isOpen)} />
+            </>
+          )}
           {conversionResults.length > 0 && (
             <div style={{ marginTop: "1rem" }}>
               <h3>编码转换预览</h3>

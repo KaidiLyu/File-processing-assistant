@@ -5,6 +5,7 @@ import { DropZone } from "../ui/drop-zone"
 import { FileList } from "../ui/file-list"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { ExportFile } from "../ui/export-file"
 
 // ----------------------【新增辅助函数：对 CSV 数据进行分组与聚合】----------------------
 function groupAndAggregateData(text: string, groupCol: number, aggCol: number): string {
@@ -37,7 +38,7 @@ function groupAndAggregateData(text: string, groupCol: number, aggCol: number): 
 // ----------------------【新增辅助函数结束】----------------------
 
 export function GroupAndAggregate() {
-  const [files, setFiles] = useState([])
+  const [files, setFiles] = useState<File[]>([])
   const handleFiles = (fileList: FileList) => {
     setFiles(Array.from(fileList))
   }
@@ -49,7 +50,7 @@ export function GroupAndAggregate() {
   const [groupColumn, setGroupColumn] = useState("")
   const [aggregateColumn, setAggregateColumn] = useState("")
   // ----------------------【新增状态：存储分组与聚合后的预览结果】----------------------
-  const [aggregationResults, setAggregationResults] = useState([])
+  const [aggregationResults, setAggregationResults] = useState<{ fileName: string; content: string }[]>([])
   // ----------------------【新增状态结束】----------------------
 
   const handleGroupAggregate = () => {
@@ -84,10 +85,11 @@ export function GroupAndAggregate() {
         console.error("分组与聚合过程中出错", err)
       })
   }
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <FeatureLayout>
-      <DropZone onFiles={handleFiles} />
+      <DropZone onFileSelect={handleFiles} />
       {files.length > 0 && (
         <>
           <FileList files={files} onRemove={removeFile} />
@@ -112,6 +114,12 @@ export function GroupAndAggregate() {
           </div>
           {/* ----------------------【新增分组与聚合输入项结束】---------------------- */}
           <Button onClick={handleGroupAggregate}>分组与聚合</Button>
+          {aggregationResults.length > 0 && (
+            <>
+              <Button className="ml-3" onClick={() => setIsOpen(!isOpen)}>导出文件</Button>
+              <ExportFile files={aggregationResults} isOpen={isOpen} onClose={() => setIsOpen(!isOpen)} />
+            </>
+          )}
           {/* ----------------------【新增分组与聚合预览展示开始】---------------------- */}
           {aggregationResults.length > 0 && (
             <div style={{ marginTop: "1rem" }}>

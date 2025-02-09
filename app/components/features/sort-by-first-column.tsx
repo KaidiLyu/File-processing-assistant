@@ -4,6 +4,7 @@ import { FeatureLayout } from "../feature-layout"
 import { DropZone } from "../ui/drop-zone"
 import { FileList } from "../ui/file-list"
 import { Label } from "@/components/ui/label"
+import { ExportFile } from "../ui/export-file"
 
 // ----------------------【新增辅助函数：按第一列排序】----------------------
 function sortByFirstColumn(text: string): string {
@@ -64,14 +65,21 @@ export function SortByFirstColumn() {
       })
   }
   // ----------------------【新增逻辑结束】----------------------
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <FeatureLayout>
-      <DropZone onFiles={handleFiles} />
+      <DropZone onFileSelect={handleFiles} />
       {files.length > 0 && (
         <>
           <FileList files={files} onRemove={removeFile} />
           <Button onClick={handleSort}>按第一列排序</Button>
+          {sortedResults.length > 0 && (
+            <>
+              <Button className="ml-3" onClick={() => setIsOpen(!isOpen)}>导出文件</Button>
+              <ExportFile files={sortedResults} isOpen={isOpen} onClose={() => setIsOpen(!isOpen)} />
+            </>
+          )}
           {/* ----------------------【新增预览展示：显示排序后的结果】---------------------- */}
           {sortedResults.length > 0 && (
             <div style={{ marginTop: "1rem" }}>

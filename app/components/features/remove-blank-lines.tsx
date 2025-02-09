@@ -4,6 +4,7 @@ import { FeatureLayout } from "../feature-layout"
 import { DropZone } from "../ui/drop-zone"
 import { FileList } from "../ui/file-list"
 import { Label } from "@/components/ui/label"
+import { ExportFile } from "../ui/export-file"
 
 // ----------------------【新增辅助函数：删除空行】----------------------
 function removeBlankLinesFromText(text: string): string {
@@ -57,14 +58,21 @@ export function RemoveBlankLines() {
         console.error("删除空行过程中出错", err)
       })
   }
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <FeatureLayout>
-      <DropZone onFiles={handleFiles} />
+      <DropZone onFileSelect={handleFiles} />
       {files.length > 0 && (
         <>
           <FileList files={files} onRemove={removeFile} />
           <Button onClick={handleRemoveBlankLines}>删除空行</Button>
+          {removeBlankResults.length > 0 && (
+            <>
+              <Button className="ml-3" onClick={() => setIsOpen(!isOpen)}>导出文件</Button>
+              <ExportFile files={removeBlankResults} isOpen={isOpen} onClose={() => setIsOpen(!isOpen)} />
+            </>
+          )}
           {/* ----------------------【新增预览展示：显示删除空行后的文本】---------------------- */}
           {removeBlankResults.length > 0 && (
             <div style={{ marginTop: "1rem" }}>

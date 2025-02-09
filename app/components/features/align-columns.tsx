@@ -4,7 +4,8 @@ import { FeatureLayout } from "../feature-layout"
 import { DropZone } from "../ui/drop-zone"
 import { FileList } from "../ui/file-list"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "../ui/label"
+import { Label } from "@/components/ui/label"
+import { ExportFile } from "../ui/export-file"
 
 // 添加一个辅助函数，用于对文本的各列进行对齐处理
 function alignText(text: string, alignment: "left" | "center" | "right"): string {
@@ -83,10 +84,11 @@ export function AlignColumns() {
         console.error("文件对齐过程中出错", err)
       })
   }
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <FeatureLayout>
-      <DropZone onFiles={handleFiles} />
+      <DropZone onFileSelect={handleFiles} />
       {files.length > 0 && (
         <>
           <FileList files={files} onRemove={removeFile} />
@@ -109,6 +111,10 @@ export function AlignColumns() {
           <Button onClick={handleAlign} className="mt-4">
             对齐列
           </Button>
+          {results.length > 0 && (<>
+            <Button className="ml-3" onClick={() => setIsOpen(!isOpen)}>导出文件</Button>
+            <ExportFile files={results} isOpen={isOpen} onClose={() => setIsOpen(!isOpen)} />
+          </>)}
           {/* 添加一个新的展示区域，显示每个文件对齐后的结果 */}
           {results.length > 0 && (
             <div className="mt-4">

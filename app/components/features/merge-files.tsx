@@ -5,9 +5,10 @@ import { DropZone } from "../ui/drop-zone"
 import { FileList } from "../ui/file-list"
 import { Input } from "@/components/ui/input" // 【新增代码】引入 Input 组件
 import { Label } from "@/components/ui/label" // 【新增代码】引入 Label 组件
+import { ExportFile } from "../ui/export-file"
 
 export function MergeFiles() {
-  const [files, setFiles] = useState([])
+  const [files, setFiles] = useState<File[]>([])
   const handleFiles = (fileList: FileList) => {
     setFiles(Array.from(fileList))
   }
@@ -51,10 +52,11 @@ export function MergeFiles() {
         console.error("合并文件出错", err)
       })
   }
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <FeatureLayout>
-      <DropZone onFiles={handleFiles} />
+      <DropZone onFileSelect={handleFiles} />
       {files.length > 0 && (
         <>
           <FileList files={files} onRemove={removeFile} />
@@ -69,6 +71,12 @@ export function MergeFiles() {
           </div>
           {/* ----------------------【新增输入项结束】---------------------- */}
           <Button onClick={handleMerge}>Merge Files</Button>
+          {mergeResult.length > 0 && (
+            <>
+              <Button className="ml-3" onClick={() => setIsOpen(!isOpen)}>导出文件</Button>
+              <ExportFile files={[{ fileName: "newFile", content: mergeResult }]} isOpen={isOpen} onClose={() => setIsOpen(!isOpen)} />
+            </>
+          )}
           {/* ----------------------【新增预览展示：显示合并结果】---------------------- */}
           {mergeResult && (
             <div style={{ marginTop: "1rem" }}>

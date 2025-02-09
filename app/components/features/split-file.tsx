@@ -5,6 +5,7 @@ import { DropZone } from "../ui/drop-zone"
 import { FileList } from "../ui/file-list"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input" // 【新增代码】
+import { ExportFile } from "../ui/export-file"
 
 // ----------------------【新增辅助函数：分割文件内容】----------------------
 function splitFileContent(text: string, linesPerSplit: number): string[] {
@@ -49,10 +50,11 @@ export function SplitFile() {
               reject(new Error("无效的每块行数"))
               return
             }
-            // ----------------------【新增调用辅助函数进行文件分割】----------------------
             const parts = splitFileContent(text, linesNum)
-            resolve({ fileName: file.name, parts })
-            // ----------------------【新增调用辅助函数结束】----------------------
+            resolve({
+              fileName: file.name,
+              parts
+            })
           } else {
             reject(new Error("文件读取失败"))
           }
@@ -61,6 +63,7 @@ export function SplitFile() {
         reader.readAsText(file)
       })
     })
+
     Promise.all(promises)
       .then(results => {
         setSplitResults(results)
@@ -70,10 +73,11 @@ export function SplitFile() {
         console.error("分割过程中出错", err)
       })
   }
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <FeatureLayout>
-      <DropZone onFiles={handleFiles} />
+      <DropZone onFileSelect={handleFiles} />
       {files.length > 0 && (
         <>
           <FileList files={files} onRemove={removeFile} />
@@ -89,6 +93,21 @@ export function SplitFile() {
           </div>
           {/* ----------------------【新增输入项结束】---------------------- */}
           <Button onClick={handleSplit}>分割文件</Button>
+          {splitResults.length > 0 && (
+            <>
+              <Button className="ml-3" onClick={() => setIsOpen(!isOpen)}>导出文件</Button>
+              <ExportFile
+                files={splitResults.flatMap((result, fileIndex) =>
+                  result.parts.map((content, partIndex) => ({
+                    fileName: `${result.fileName.replace(/\.[^/.]+$/, '')}_part${partIndex + 1}.txt`,
+                    content: content
+                  }))
+                )}
+                isOpen={isOpen}
+                onClose={() => setIsOpen(!isOpen)}
+              />
+            </>
+          )}
           {/* ----------------------【新增预览展示：显示分割后的结果】---------------------- */}
           {splitResults.length > 0 && (
             <div style={{ marginTop: "1rem" }}>
