@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input" // 【新增代码】
 import { ExportFile } from "../ui/export-file"
 
-// ----------------------【新增辅助函数：分割文件内容】----------------------
+// ----------------------【新增辅助函数：按固定行数拆分文件内容】----------------------
 function splitFileContent(text: string, linesPerSplit: number): string[] {
   // 将文本按换行符拆分成数组
   const lines = text.split("\n")
@@ -17,6 +17,40 @@ function splitFileContent(text: string, linesPerSplit: number): string[] {
     parts.push(lines.slice(i, i + linesPerSplit).join("\n"))
   }
   return parts
+}
+// ----------------------【新增辅助函数结束】----------------------
+
+// ----------------------【新增辅助函数：按第一列拆分文件内容】----------------------
+function splitFileByFirstColumn(text: string, delimiter: string = ","): string[] {
+  // 按第一列的值分组，每个不同的第一列值作为一个分组，返回各分组的文本
+  const lines = text.split("\n").filter(line => line.trim() !== "")
+  const groups: Record<string, string[]> = {}
+  lines.forEach(line => {
+    const columns = line.split(delimiter)
+    const key = columns[0].trim()
+    if (!groups[key]) {
+      groups[key] = []
+    }
+    groups[key].push(line)
+  })
+  return Object.keys(groups).map(key => groups[key].join("\n"))
+}
+// ----------------------【新增辅助函数结束】----------------------
+
+// ----------------------【新增辅助函数：按列拆分文件内容】----------------------
+function splitFileByColumns(text: string, leftColumnsCount: number, delimiter: string = ","): string[] {
+  // 将每一行按 delimiter 分割，然后把前 leftColumnsCount 列与剩余列分别拼接成两段文本
+  const lines = text.split("\n").filter(line => line.trim() !== "")
+  const leftParts: string[] = []
+  const rightParts: string[] = []
+  lines.forEach(line => {
+    const columns = line.split(delimiter)
+    const leftPart = columns.slice(0, leftColumnsCount).join(delimiter)
+    const rightPart = columns.slice(leftColumnsCount).join(delimiter)
+    leftParts.push(leftPart)
+    rightParts.push(rightPart)
+  })
+  return [leftParts.join("\n"), rightParts.join("\n")]
 }
 // ----------------------【新增辅助函数结束】----------------------
 
@@ -33,7 +67,11 @@ export function SplitFile() {
   const [splitResults, setSplitResults] = useState<Array<{ fileName: string; parts: string[] }>>([])
   // ----------------------【新增状态结束】----------------------
 
-  // ----------------------【新增状态：记录用户输入的每个分割块包含的行数】----------------------
+  // ----------------------【新增状态：记录用户输入的拆分参数】----------------------
+  // 此参数含义如下：
+  // 正数 —— 按固定行数拆分（原有功能）
+  // 0 —— 按第一列拆分（功能1）
+  // 负数 —— 按列拆分，绝对值表示前几列数量（功能2）
   const [linesPerSplit, setLinesPerSplit] = useState<string>("10")
   // ----------------------【新增状态结束】----------------------
 
@@ -45,12 +83,23 @@ export function SplitFile() {
         reader.onload = () => {
           if (reader.result) {
             const text = reader.result as string
-            const linesNum = Number(linesPerSplit)
-            if (isNaN(linesNum) || linesNum <= 0) {
-              reject(new Error("无效的每块行数"))
+            const splitParam = Number(linesPerSplit)
+            if (isNaN(splitParam)) {
+              reject(new Error("无效的拆分参数"))
               return
             }
-            const parts = splitFileContent(text, linesNum)
+            let parts: string[] = []
+            if (splitParam > 0) {
+              // 正数：按固定行数拆分（原有功能）
+              parts = splitFileContent(text, splitParam)
+            } else if (splitParam === 0) {
+              // 0：按第一列拆分（功能1）
+              parts = splitFileByFirstColumn(text)
+            } else {
+              // 负数：按列拆分（功能2），绝对值为前几列数量
+              const leftColumnsCount = Math.abs(splitParam)
+              parts = splitFileByColumns(text, leftColumnsCount)
+            }
             resolve({
               fileName: file.name,
               parts
