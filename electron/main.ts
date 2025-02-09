@@ -38,7 +38,7 @@ function createWindow() {
 
   // 打开开发者工具
   // Open DevTools
-  mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 
   // 监听窗口关闭事件
   // Listen for window close event
