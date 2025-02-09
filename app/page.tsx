@@ -32,7 +32,7 @@ export default function AppLayout() {
       </div>
 
       {/* Bottom Toolbar */}
-      <BottomToolbar />
+      <BottomToolbar children />
     </div>
   )
 }
