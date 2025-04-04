@@ -115,6 +115,13 @@ npm run electron:build   # Build for production
 - [ ] Add integration tests for features
 - [ ] Set up end-to-end testing
 
+## 最近更新
+
+- **新增功能**：列数据运算 - 支持使用A、B、C等字母表示列，可以创建如A+B/2这样的自定义数学公式
+- **新增功能**：文件格式转换 - 支持多种文件格式(txt、pdf、docx、html等)的相互转换
+- **界面优化**：应用标题更新为"File Processor"
+- **其他改进**：修复了多个bug，提升了用户体验
+
 ## Contributing
 
 We welcome contributions! Please read our contributing guidelines for details on our code of conduct and the process for submitting pull requests.
