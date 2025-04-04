@@ -15,6 +15,7 @@ import { EncodingConversion } from "./features/encoding-conversion"
 import { CompressFolder } from "./features/compress-folder"
 import { ExtractFiles } from "./features/extract-files"
 import { TextFormatConversion } from "./features/text-format-conversion"
+import { FileFormatConversion } from "./features/file-format-conversion"
 
 interface MainPanelProps {
   selectedFeature: string
@@ -57,6 +58,8 @@ export function MainPanel({ selectedFeature }: MainPanelProps) {
         <ExtractFiles />
       ) : selectedFeature === "text-format-conversion" ? (
         <TextFormatConversion />
+      ) : selectedFeature === "file-format-conversion" ? (
+        <FileFormatConversion />
       ) : (
         <div className="flex items-center justify-center h-full text-muted-foreground">请从左侧选择功能</div>
       )}

@@ -15,6 +15,9 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    title: "File Processor",
+    titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 10, y: 10 },
     webPreferences: {
       nodeIntegration: true,      // 启用 Node.js 集成 | Enable Node.js integration
       contextIsolation: false,    // 禁用上下文隔离 | Disable context isolation
@@ -45,6 +48,9 @@ function createWindow() {
   mainWindow.on("closed", () => {
     mainWindow = null
   })
+
+  // 设置app名称显示在macOS菜单栏
+  app.name = "File Processor";
 }
 
 // 应用程序生命周期事件监听

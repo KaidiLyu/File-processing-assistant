@@ -1,8 +1,8 @@
 {
-  "name": "my-v0-project",
+  "name": "file-processor",
   "version": "0.1.0",
   "private": true,
-  "description": "A Mac OS style app layout built with Next.js and Electron",
+  "description": "File Processor - A powerful tool for processing text and data files",
   "author": {
     "name": "Your Name",
     "email": "your.email@example.com"
@@ -91,7 +91,8 @@
   },
   "main": "dist/main.js",
   "build": {
-    "appId": "com.your.app",
+    "appId": "com.fileprocessor.app",
+    "productName": "File Processor",
     "files": [
       "**/*",
       "!**/*.ts",

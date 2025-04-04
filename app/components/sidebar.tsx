@@ -18,6 +18,7 @@ import {
   Archive,
   FolderDown,
   FileType,
+  FileOutput,
 } from "lucide-react"
 
 const features = [
@@ -38,7 +39,7 @@ const features = [
     category: "数据处理",
     items: [
       { id: "delete-column", icon: Scissors, label: "删除列" },
-      { id: "math-operations", icon: Calculator, label: "数学运算" },
+      { id: "math-operations", icon: Calculator, label: "列数据运算" },
       { id: "filter-data", icon: Filter, label: "过滤数据" },
       { id: "group-and-aggregate", icon: PieChart, label: "分组聚合" },
     ],
@@ -49,6 +50,7 @@ const features = [
       { id: "encoding-conversion", icon: RefreshCcw, label: "编码转换" },
       { id: "batch-rename", icon: FileText, label: "批量重命名" },
       { id: "text-format-conversion", icon: FileType, label: "文本格式转换" },
+      { id: "file-format-conversion", icon: FileOutput, label: "文件格式转换" },
     ],
   },
   {
