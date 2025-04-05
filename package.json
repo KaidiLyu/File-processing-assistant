@@ -117,7 +117,8 @@
       ]
     },
     "win": {
-      "target": "nsis"
+      "target": "portable",
+      "artifactName": "File-Processor-${version}-Win.exe"
     },
     "linux": {
       "target": "AppImage"
